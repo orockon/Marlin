@@ -31,56 +31,45 @@
 
 #if ENABLED(EEPROM_SETTINGS) && DISABLED(FLASH_EEPROM_EMULATION)
 
-#include "../persistent_store_api.h"
-
-//#include "../../core/types.h"
-//#include "../../core/language.h"
-//#include "../../core/serial.h"
-//#include "../../core/utility.h"
+#include "../shared/persistent_store_api.h"
 
 #include "../../sd/cardreader.h"
 
-
-namespace HAL {
-namespace PersistentStore {
-
-#define CONFIG_FILE_NAME "eeprom.dat"
 #define HAL_STM32F1_EEPROM_SIZE 4096
 char HAL_STM32F1_eeprom_content[HAL_STM32F1_EEPROM_SIZE];
 
-bool access_start() {
+char eeprom_filename[] = "eeprom.dat";
+
+bool PersistentStore::access_start() {
   if (!card.cardOK) return false;
   int16_t bytes_read = 0;
-  const char eeprom_zero = 0xFF;
-  card.openFile((char *)CONFIG_FILE_NAME,true);
-  bytes_read = card.read (HAL_STM32F1_eeprom_content, HAL_STM32F1_EEPROM_SIZE);
-  if (bytes_read == -1) return false;
-  for (; bytes_read < HAL_STM32F1_EEPROM_SIZE; bytes_read++) {
+  constexpr char eeprom_zero = 0xFF;
+  card.openFile(eeprom_filename, true);
+  bytes_read = card.read(HAL_STM32F1_eeprom_content, HAL_STM32F1_EEPROM_SIZE);
+  if (bytes_read < 0) return false;
+  for (; bytes_read < HAL_STM32F1_EEPROM_SIZE; bytes_read++)
     HAL_STM32F1_eeprom_content[bytes_read] = eeprom_zero;
-  }
   card.closefile();
   return true;
 }
 
-bool access_finish(){
+bool PersistentStore::access_finish() {
   if (!card.cardOK) return false;
-  int16_t bytes_written = 0;
-  card.openFile((char *)CONFIG_FILE_NAME,true);
-  bytes_written = card.write (HAL_STM32F1_eeprom_content, HAL_STM32F1_EEPROM_SIZE);
+  card.openFile(eeprom_filename, true);
+  int16_t bytes_written = card.write(HAL_STM32F1_eeprom_content, HAL_STM32F1_EEPROM_SIZE);
   card.closefile();
   return (bytes_written == HAL_STM32F1_EEPROM_SIZE);
 }
 
-bool write_data(int &pos, const uint8_t *value, uint16_t size, uint16_t *crc) {
-  for (int i = 0; i < size; i++) {
-    HAL_STM32F1_eeprom_content [pos + i] = value[i];
-  }
+bool PersistentStore::write_data(int &pos, const uint8_t *value, const size_t size, uint16_t *crc) {
+  for (int i = 0; i < size; i++)
+    HAL_STM32F1_eeprom_content[pos + i] = value[i];
   crc16(crc, value, size);
   pos += size;
   return false;
 }
 
-bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc, const bool writing/*=true*/) {
+bool PersistentStore::read_data(int &pos, uint8_t* value, const size_t size, uint16_t *crc, const bool writing/*=true*/) {
   for (int i = 0; i < size; i++) {
     uint8_t c = HAL_STM32F1_eeprom_content[pos + i];
     if (writing) value[i] = c;
@@ -90,10 +79,8 @@ bool read_data(int &pos, uint8_t* value, uint16_t size, uint16_t *crc, const boo
   return false;
 }
 
-} // PersistentStore::
-} // HAL::
+size_t PersistentStore::capacity() { return HAL_STM32F1_EEPROM_SIZE; }
 
 #endif // EEPROM_SETTINGS
 
 #endif // __STM32F1__
-
