@@ -345,8 +345,8 @@
   #if ENABLED(Z_TRIPLE_ENDSTOPS)
     #define Z2_USE_ENDSTOP _XMAX_
     #define Z3_USE_ENDSTOP _YMAX_
-    #define Z_TRIPLE2_ENDSTOPS_ADJUSTMENT  0
-    #define Z_TRIPLE3_ENDSTOPS_ADJUSTMENT  0
+    #define Z_TRIPLE_ENDSTOPS_ADJUSTMENT2  0
+    #define Z_TRIPLE_ENDSTOPS_ADJUSTMENT3  0
   #endif
 #endif
 
@@ -779,6 +779,9 @@
   #define MOVE_Z_WHEN_IDLE
   #define MOVE_Z_IDLE_MULTIPLICATOR 2
   #define BABYSTEP_ZPROBE_GFX_OVERLAY // Enable graphical overlay on Z-offset editor
+  #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
+    //#define BABYSTEP_HOTEND_Z_OFFSET // For multiple hotends, babystep relative Z offsets
+  #endif
 #endif
 
 // @section extruder
@@ -994,10 +997,13 @@
  * Note that M207 / M208 / M209 settings are saved to EEPROM.
  *
  */
-//#define FWRETRACT  // ONLY PARTIALLY TESTED
+//#define FWRETRACT
 #if ENABLED(FWRETRACT)
-  #define MIN_AUTORETRACT 0.1             // When auto-retract is on, convert E moves of this length and over
-  #define MAX_AUTORETRACT 10.0            // Upper limit for auto-retract conversion
+  #define FWRETRACT_AUTORETRACT           // costs ~500 bytes of PROGMEM
+  #if ENABLED(FWRETRACT_AUTORETRACT)
+    #define MIN_AUTORETRACT 0.1           // When auto-retract is on, convert E moves of this length and over
+    #define MAX_AUTORETRACT 10.0          // Upper limit for auto-retract conversion
+  #endif
   #define RETRACT_LENGTH 3                // Default retract length (positive mm)
   #define RETRACT_LENGTH_SWAP 13          // Default swap retract length (positive mm), for extruder change
   #define RETRACT_FEEDRATE 45             // Default feedrate for retracting (mm/s)
@@ -1272,7 +1278,7 @@
   #if ENABLED(SENSORLESS_HOMING)
     #define X_HOMING_SENSITIVITY  8
     #define Y_HOMING_SENSITIVITY  8
-    #define Z_HOMING_SENSITIVITY  8
+    //#define Z_HOMING_SENSITIVITY  8
   #endif
 
   /**
@@ -1311,7 +1317,7 @@
    */
   #define TMC_ADV() {  }
 
-#endif // TMC2130 || TMC2208
+#endif // HAS_TRINAMIC
 
 // @section L6470
 
@@ -1559,6 +1565,7 @@
  */
 #define CUSTOM_USER_MENUS
 #if ENABLED(CUSTOM_USER_MENUS)
+  //#define CUSTOM_USER_MENU_TITLE "Custom Commands"
   #define MSG_USER_MENU _UxGT("Quick Menu")
   #define USER_SCRIPT_DONE "M117 Command Complete"
   //#define USER_SCRIPT_AUDIBLE_FEEDBACK
@@ -1696,6 +1703,7 @@
   #define MAX7219_NUMBER_UNITS 1   // Number of Max7219 units in chain.
   #define MAX7219_ROTATE       0   // Rotate the display clockwise (in multiples of +/- 90°)
                                    // connector at:  right=0   bottom=-90  top=90  left=180
+  //#define MAX7219_REVERSE_ORDER  // The individual LED matrix units may be in reversed order
 
   /**
    * Sample debug features
