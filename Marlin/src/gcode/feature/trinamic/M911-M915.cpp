@@ -265,61 +265,73 @@ void GcodeSuite::M912() {
     bool report = true;
     const uint8_t index = parser.byteval('I');
     LOOP_XYZ(i) if (parser.seen(axis_codes[i])) {
-      const int8_t value = (int8_t)constrain(parser.value_int(), -63, 64);
+      const int8_t value = (int8_t)constrain(parser.value_int(), -64, 63);
       report = false;
       switch (i) {
-        case X_AXIS:
-          #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-            if (index == 0) TMC_SET_SGT(X);
-          #endif
-          #if ENABLED(X2_IS_TMC2130)
-            if (index == 1) TMC_SET_SGT(X2);
-          #endif
-          break;
-        case Y_AXIS:
-          #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-            if (index == 0) TMC_SET_SGT(Y);
-          #endif
-          #if ENABLED(Y2_IS_TMC2130)
-            if (index == 1) TMC_SET_SGT(Y2);
-          #endif
-          break;
-        case Z_AXIS:
-          #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
-            if (index == 0) TMC_SET_SGT(Z);
-          #endif
-          #if ENABLED(Z2_IS_TMC2130)
-            if (index == 1) TMC_SET_SGT(Z2);
-          #endif
-          break;
+        #if X_SENSORLESS
+          case X_AXIS:
+            #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+              if (index == 0) TMC_SET_SGT(X);
+            #endif
+            #if ENABLED(X2_IS_TMC2130)
+              if (index == 1) TMC_SET_SGT(X2);
+            #endif
+            break;
+        #endif
+        #if Y_SENSORLESS
+          case Y_AXIS:
+            #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+              if (index == 0) TMC_SET_SGT(Y);
+            #endif
+            #if ENABLED(Y2_IS_TMC2130)
+              if (index == 1) TMC_SET_SGT(Y2);
+            #endif
+            break;
+        #endif
+        #if Z_SENSORLESS
+          case Z_AXIS:
+            #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+              if (index == 0) TMC_SET_SGT(Z);
+            #endif
+            #if ENABLED(Z2_IS_TMC2130)
+              if (index == 1) TMC_SET_SGT(Z2);
+            #endif
+            break;
+        #endif
       }
     }
 
     if (report) LOOP_XYZ(i) switch (i) {
-      case X_AXIS:
-        #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SAY_SGT(X);
-        #endif
-        #if ENABLED(X2_IS_TMC2130)
-          TMC_SAY_SGT(X2);
-        #endif
-        break;
-      case Y_AXIS:
-        #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SAY_SGT(Y);
-        #endif
-        #if ENABLED(Y2_IS_TMC2130)
-          TMC_SAY_SGT(Y2);
-        #endif
-        break;
-      case Z_AXIS:
-        #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
-          TMC_SAY_SGT(Z);
-        #endif
-        #if ENABLED(Z2_IS_TMC2130)
-          TMC_SAY_SGT(Z2);
-        #endif
-        break;
+      #if X_SENSORLESS
+        case X_AXIS:
+          #if ENABLED(X_IS_TMC2130) || ENABLED(IS_TRAMS)
+            TMC_SAY_SGT(X);
+          #endif
+          #if ENABLED(X2_IS_TMC2130)
+            TMC_SAY_SGT(X2);
+          #endif
+          break;
+      #endif
+      #if Y_SENSORLESS
+        case Y_AXIS:
+          #if ENABLED(Y_IS_TMC2130) || ENABLED(IS_TRAMS)
+            TMC_SAY_SGT(Y);
+          #endif
+          #if ENABLED(Y2_IS_TMC2130)
+            TMC_SAY_SGT(Y2);
+          #endif
+          break;
+      #endif
+      #if Z_SENSORLESS
+        case Z_AXIS:
+          #if ENABLED(Z_IS_TMC2130) || ENABLED(IS_TRAMS)
+            TMC_SAY_SGT(Z);
+          #endif
+          #if ENABLED(Z2_IS_TMC2130)
+            TMC_SAY_SGT(Z2);
+          #endif
+          break;
+      #endif
     }
   }
 #endif // SENSORLESS_HOMING
@@ -332,7 +344,7 @@ void GcodeSuite::M912() {
     const uint16_t _rms = parser.seenval('S') ? parser.value_int() : CALIBRATION_CURRENT,
                    _z = parser.seenval('Z') ? parser.value_linear_units() : CALIBRATION_EXTRA_HEIGHT;
 
-    if (!axis_known_position[Z_AXIS]) {
+    if (!TEST(axis_known_position, Z_AXIS)) {
       SERIAL_ECHOLNPGM("\nPlease home Z axis first");
       return;
     }

@@ -31,7 +31,7 @@
 #include "../inc/MarlinConfig.h"
 
 #if ENABLED(BABYSTEPPING)
-  extern bool axis_known_position[XYZ];
+  extern uint8_t axis_known_position;
 #endif
 
 #if ENABLED(AUTO_POWER_CONTROL)
@@ -40,6 +40,12 @@
 
 #ifndef SOFT_PWM_SCALE
   #define SOFT_PWM_SCALE 0
+#endif
+
+#if HOTENDS == 1
+  #define HOTEND_INDEX  0
+#else
+  #define HOTEND_INDEX  e
 #endif
 
 /**
@@ -94,14 +100,14 @@ enum ADCSensorState : char {
 #define ACTUAL_ADC_SAMPLES MAX(int(MIN_ADC_ISR_LOOPS), int(SensorsReady))
 
 #if HAS_PID_HEATING
-  #define PID_K2 (1.0-PID_K1)
+  #define PID_K2 (1-float(PID_K1))
   #define PID_dT ((OVERSAMPLENR * float(ACTUAL_ADC_SAMPLES)) / TEMP_TIMER_FREQUENCY)
 
   // Apply the scale factors to the PID values
-  #define scalePID_i(i)   ( (i) * PID_dT )
-  #define unscalePID_i(i) ( (i) / PID_dT )
-  #define scalePID_d(d)   ( (d) / PID_dT )
-  #define unscalePID_d(d) ( (d) * PID_dT )
+  #define scalePID_i(i)   ( float(i) * PID_dT )
+  #define unscalePID_i(i) ( float(i) / PID_dT )
+  #define scalePID_d(d)   ( float(d) / PID_dT )
+  #define unscalePID_d(d) ( float(d) * PID_dT )
 #endif
 
 class Temperature {
@@ -498,7 +504,7 @@ class Temperature {
     #if ENABLED(BABYSTEPPING)
 
       static void babystep_axis(const AxisEnum axis, const int16_t distance) {
-        if (axis_known_position[axis]) {
+        if (TEST(axis_known_position, axis)) {
           #if IS_CORE
             #if ENABLED(BABYSTEP_XY)
               switch (axis) {

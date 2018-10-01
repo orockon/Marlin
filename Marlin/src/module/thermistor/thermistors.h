@@ -55,6 +55,9 @@
 #if ANY_THERMISTOR_IS(5) // beta25 = 4267 K, R25 = 100 kOhm, Pull-up = 4.7 kOhm, "ParCan, ATC 104GT-2"
   #include "thermistor_5.h"
 #endif
+#if ANY_THERMISTOR_IS(501) // 100K Zonestar thermistor
+  #include "thermistor_501.h"
+#endif
 #if ANY_THERMISTOR_IS(6) // beta25 = 4092 K, R25 = 100 kOhm, Pull-up = 8.2 kOhm, "EPCOS ?"
   #include "thermistor_6.h"
 #endif
@@ -184,20 +187,25 @@
 #ifdef THERMISTORBED
   #define BEDTEMPTABLE TT_NAME(THERMISTORBED)
   #define BEDTEMPTABLE_LEN COUNT(BEDTEMPTABLE)
+#elif defined(HEATER_BED_USES_THERMISTOR)
+  #error "No bed thermistor table specified"
 #else
-  #ifdef HEATER_BED_USES_THERMISTOR
-    #error "No bed thermistor table specified"
-  #endif
+  #define BEDTEMPTABLE_LEN 0
 #endif
 
 #ifdef THERMISTORCHAMBER
   #define CHAMBERTEMPTABLE TT_NAME(THERMISTORCHAMBER)
   #define CHAMBERTEMPTABLE_LEN COUNT(CHAMBERTEMPTABLE)
+#elif defined(HEATER_CHAMBER_USES_THERMISTOR)
+  #error "No chamber thermistor table specified"
 #else
-  #ifdef HEATER_CHAMBER_USES_THERMISTOR
-    #error "No chamber thermistor table specified"
-  #endif
+  #define CHAMBERTEMPTABLE_LEN 0
 #endif
+
+// The SCAN_THERMISTOR_TABLE macro needs alteration?
+static_assert(HEATER_0_TEMPTABLE_LEN < 256 && HEATER_1_TEMPTABLE_LEN < 256 && HEATER_2_TEMPTABLE_LEN < 256 && HEATER_3_TEMPTABLE_LEN < 256 && HEATER_4_TEMPTABLE_LEN < 256 && BEDTEMPTABLE_LEN < 256 && CHAMBERTEMPTABLE_LEN < 256,
+  "Temperature conversion tables over 255 entries need special consideration."
+);
 
 // Set the high and low raw values for the heaters
 // For thermistors the highest temperature results in the lowest ADC value
