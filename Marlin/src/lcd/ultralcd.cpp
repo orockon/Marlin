@@ -114,9 +114,6 @@ uint8_t lcd_status_update_delay = 1, // First update one loop delayed
   constexpr bool first_page = true;
 #endif
 
-void lcd_move_z();
-float move_menu_scale;
-
 // The main status screen
 void lcd_status_screen();
 
@@ -526,7 +523,6 @@ millis_t next_lcd_update_ms;
       #endif
 
       #if ENABLED(DOUBLECLICK_FOR_Z_BABYSTEPPING) && ENABLED(BABYSTEPPING)
-        
         static millis_t doubleclick_expire_ms = 0;
         // Going to lcd_main_menu from status screen? Remember first click time.
         // Going back to status screen within a very short time? Go to Z babystepping.
@@ -2865,11 +2861,6 @@ void lcd_quick_feedback(const bool clear_buttons) {
     END_MENU();
   }
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> origin/bugfix-2.0.x
   #if ENABLED(DELTA_CALIBRATION_MENU) || ENABLED(DELTA_AUTO_CALIBRATION)
 
     void _man_probe_pt(const float &rx, const float &ry) {
