@@ -198,7 +198,7 @@ inline void lcd_implementation_status_message(const bool blink) {
   #endif
 }
 
-static void lcd_implementation_status_screen() {
+static void lcd_impl_status_screen_0() {
 
   const bool blink = lcd_blink();
 
@@ -207,7 +207,7 @@ static void lcd_implementation_status_screen() {
     static uint8_t fan_frame;
     if (old_blink != blink) {
       old_blink = blink;
-      if (!fanSpeeds[0] || ++fan_frame >= FAN_ANIM_FRAMES) fan_frame = 0;
+      if (!fan_speed[0] || ++fan_frame >= FAN_ANIM_FRAMES) fan_frame = 0;
     }
   #endif
 
@@ -245,7 +245,7 @@ static void lcd_implementation_status_screen() {
             fan_frame == 3 ? status_screen3_bmp :
           #endif
         #else
-          blink && fanSpeeds[0] ? status_screen1_bmp :
+          blink && fan_speed[0] ? status_screen1_bmp :
         #endif
       #endif
       status_screen0_bmp
@@ -269,7 +269,7 @@ static void lcd_implementation_status_screen() {
     #if HAS_FAN0
       if (PAGE_CONTAINS(STATUS_SCREEN_FAN_TEXT_Y - 7, STATUS_SCREEN_FAN_TEXT_Y)) {
         // Fan
-        const int16_t per = ((fanSpeeds[0] + 1) * 100) / 256;
+        const uint16_t per = (((uint16_t)fan_speed[0] + 1) * 100) / 256;
         if (per) {
           lcd_moveto(STATUS_SCREEN_FAN_TEXT_X, STATUS_SCREEN_FAN_TEXT_Y);
           lcd_put_u8str(itostr3(per));
@@ -295,7 +295,7 @@ static void lcd_implementation_status_screen() {
     }
   #endif // SDSUPPORT
 
-  #if ENABLED(SDSUPPORT) || ENABLED(LCD_SET_PROGRESS_MANUALLY)
+  #if HAS_PRINT_PROGRESS
     //
     // Progress bar frame
     //

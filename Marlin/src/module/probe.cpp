@@ -94,10 +94,6 @@ float zprobe_zoffset; // Initialized by settings.load()
 
 #elif ENABLED(Z_PROBE_ALLEN_KEY)
 
-  FORCE_INLINE void do_blocking_move_to(const float (&raw)[XYZ], const float &fr_mm_s) {
-    do_blocking_move_to(raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS], fr_mm_s);
-  }
-
   void run_deploy_moves_script() {
     #if defined(Z_PROBE_ALLEN_KEY_DEPLOY_1_X) || defined(Z_PROBE_ALLEN_KEY_DEPLOY_1_Y) || defined(Z_PROBE_ALLEN_KEY_DEPLOY_1_Z)
       #ifndef Z_PROBE_ALLEN_KEY_DEPLOY_1_X
@@ -273,12 +269,12 @@ float zprobe_zoffset; // Initialized by settings.load()
       fans_paused = p;
       if (p)
         for (uint8_t x = 0; x < FAN_COUNT; x++) {
-          paused_fanSpeeds[x] = fanSpeeds[x];
-          fanSpeeds[x] = 0;
+          paused_fan_speed[x] = fan_speed[x];
+          fan_speed[x] = 0;
         }
       else
         for (uint8_t x = 0; x < FAN_COUNT; x++)
-          fanSpeeds[x] = paused_fanSpeeds[x];
+          fan_speed[x] = paused_fan_speed[x];
     }
   }
 
@@ -291,6 +287,12 @@ float zprobe_zoffset; // Initialized by settings.load()
     #endif
     #if ENABLED(PROBING_FANS_OFF)
       fans_pause(p);
+    #endif
+    #if ENABLED(PROBING_STEPPERS_OFF)
+      disable_e_steppers();
+      #if DISABLED(DELTA)
+        disable_X(); disable_Y();
+      #endif
     #endif
     if (p) safe_delay(
       #if DELAY_BEFORE_PROBING > 25
