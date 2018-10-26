@@ -33,6 +33,8 @@
 
 #include "SdFile.h"
 
+enum LsAction : uint8_t { LS_SerialPrint, LS_Count, LS_GetFilename };
+
 class CardReader {
 public:
   CardReader();
@@ -143,6 +145,8 @@ public:
       next_sd_report_ms = millis() + 1000UL * v;
     }
   #endif
+
+  FORCE_INLINE char* longest_filename() { return longFilename[0] ? longFilename : filename; }
 
 public:
   bool saving, logging, sdprinting, cardOK, filenameIsDir;

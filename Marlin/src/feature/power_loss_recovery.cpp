@@ -32,19 +32,24 @@
 
 #include "../lcd/ultralcd.h"
 #include "../gcode/queue.h"
+#include "../module/motion.h"
 #include "../module/planner.h"
 #include "../module/printcounter.h"
 #include "../module/temperature.h"
 #include "../sd/cardreader.h"
 #include "../core/serial.h"
 
+#if ENABLED(FWRETRACT)
+  #include "fwretract.h"
+#endif
+
 // Recovery data
 job_recovery_info_t job_recovery_info;
 JobRecoveryPhase job_recovery_phase = JOB_RECOVERY_IDLE;
 uint8_t job_recovery_commands_count; //=0
 char job_recovery_commands[BUFSIZE + APPEND_CMD_COUNT][MAX_CMD_SIZE];
-// Extern
-extern uint8_t active_extruder, commands_in_queue, cmd_queue_index_r;
+
+extern uint8_t commands_in_queue, cmd_queue_index_r;
 
 #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)
   void debug_print_job_recovery(const bool recovery) {
@@ -88,6 +93,15 @@ extern uint8_t active_extruder, commands_in_queue, cmd_queue_index_r;
         #if HAS_LEVELING
           SERIAL_PROTOCOLPAIR("leveling: ", int(job_recovery_info.leveling));
           SERIAL_PROTOCOLLNPAIR(" fade: ", int(job_recovery_info.fade));
+        #endif
+        #if ENABLED(FWRETRACT)
+          SERIAL_PROTOCOLPGM("retract: ");
+          for (int8_t e = 0; e < EXTRUDERS; e++) {
+            SERIAL_PROTOCOL(job_recovery_info.retract[e]);
+            if (e < EXTRUDERS - 1) SERIAL_CHAR(',');
+          }
+          SERIAL_EOL();
+          SERIAL_PROTOCOLLNPAIR("retract_hop: ", job_recovery_info.retract_hop);
         #endif
         SERIAL_PROTOCOLLNPAIR("cmd_queue_index_r: ", int(job_recovery_info.cmd_queue_index_r));
         SERIAL_PROTOCOLLNPAIR("commands_in_queue: ", int(job_recovery_info.commands_in_queue));
@@ -159,6 +173,15 @@ void check_print_job_recovery() {
           }
         #endif
 
+        #if ENABLED(FWRETRACT)
+          for (uint8_t e = 0; e < EXTRUDERS; e++) {
+            if (job_recovery_info.retract[e] != 0.0)
+              fwretract.current_retract[e] = job_recovery_info.retract[e];
+              fwretract.retracted[e] = true;
+          }
+          fwretract.current_hop = job_recovery_info.retract_hop;
+        #endif
+
         dtostrf(job_recovery_info.current_position[Z_AXIS] + 2, 1, 3, str_1);
         dtostrf(job_recovery_info.current_position[E_AXIS]
           #if ENABLED(SAVE_EACH_CMD_MODE)
@@ -202,12 +225,19 @@ void save_job_recovery_info() {
     millis_t ms = millis();
   #endif
   if (
-    #if SAVE_INFO_INTERVAL_MS > 0
-      ELAPSED(ms, next_save_ms) ||
-    #endif
+    // Save on every command
     #if ENABLED(SAVE_EACH_CMD_MODE)
       true
     #else
+      // Save if power loss pin is triggered
+      #if PIN_EXISTS(POWER_LOSS)
+        READ(POWER_LOSS_PIN) == POWER_LOSS_STATE ||
+      #endif
+      // Save if interval is elapsed
+      #if SAVE_INFO_INTERVAL_MS > 0
+        ELAPSED(ms, next_save_ms) ||
+      #endif
+      // Save on every new Z height
       (current_position[Z_AXIS] > 0 && current_position[Z_AXIS] > job_recovery_info.current_position[Z_AXIS])
     #endif
   ) {
@@ -248,6 +278,11 @@ void save_job_recovery_info() {
       );
     #endif
 
+    #if ENABLED(FWRETRACT)
+      COPY(job_recovery_info.retract, fwretract.current_retract);
+      job_recovery_info.retract_hop = fwretract.current_hop;
+    #endif
+
     // Commands in the queue
     job_recovery_info.cmd_queue_index_r = cmd_queue_index_r;
     job_recovery_info.commands_in_queue = commands_in_queue;
@@ -267,6 +302,11 @@ void save_job_recovery_info() {
 
     card.openJobRecoveryFile(false);
     (void)card.saveJobRecoveryInfo();
+
+    // If power-loss pin was triggered, write just once then kill
+    #if PIN_EXISTS(POWER_LOSS)
+      if (READ(POWER_LOSS_PIN) == POWER_LOSS_STATE) kill(MSG_POWER_LOSS_RECOVERY);
+    #endif
   }
 }
 
