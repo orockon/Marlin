@@ -23,19 +23,49 @@
 #pragma once
 
 /**
- * Fast I/O interfaces for STM32F7
- * These use GPIO functions instead of Direct Port Manipulation, as on AVR.
+ * Fast I/O interfaces for STM32
+ * These use GPIO register access for fast port manipulation.
  */
 
-#define _BV(b) (1 << (b))
+// --------------------------------------------------------------------------
+// Public Variables
+// --------------------------------------------------------------------------
 
-#define READ(IO)                digitalRead(IO)
-#define WRITE(IO,V)             digitalWrite(IO,V)
-#define WRITE_VAR(IO,V)         WRITE(IO,V)
+extern GPIO_TypeDef * FastIOPortMap[];
+
+// --------------------------------------------------------------------------
+// Public functions
+// --------------------------------------------------------------------------
+
+void FastIO_init(); // Must be called before using fast io macros
+
+// --------------------------------------------------------------------------
+// Defines
+// --------------------------------------------------------------------------
+
+#define _BV(b) (1 << (b))
+#define _BV32(b) (1UL << (b))
+
+#if defined(STM32F0xx) || defined(STM32F1xx) || defined(STM32F3xx) || defined(STM32L0xx) || defined(STM32L4xx)
+  #define _WRITE(IO, V) do { \
+    if (V) FastIOPortMap[STM_PORT(digitalPin[IO])]->BSRR = _BV32(STM_PIN(digitalPin[IO])) ; \
+    else   FastIOPortMap[STM_PORT(digitalPin[IO])]->BRR  = _BV32(STM_PIN(digitalPin[IO])) ; \
+  } while(0)
+#else
+  #define _WRITE(IO, V) (FastIOPortMap[STM_PORT(digitalPin[IO])]->BSRR = _BV32(STM_PIN(digitalPin[IO]) + (V ? 0 : 16)))
+#endif
+
+#define _READ(IO)               bool(READ_BIT(FastIOPortMap[STM_PORT(digitalPin[IO])]->IDR, _BV32(STM_PIN(digitalPin[IO]))))
+#define _TOGGLE(IO)             (FastIOPortMap[STM_PORT(digitalPin[IO])]->ODR ^= _BV32(STM_PIN(digitalPin[IO])))
 
 #define _GET_MODE(IO)
 #define _SET_MODE(IO,M)         pinMode(IO, M)
 #define _SET_OUTPUT(IO)         pinMode(IO, OUTPUT)                               /*!< Output Push Pull Mode & GPIO_NOPULL   */
+
+#define WRITE_VAR(IO,V)         _WRITE(IO,V)
+#define WRITE(IO,V)             _WRITE(IO,V)
+#define READ(IO)                _READ(IO)
+#define TOGGLE(IO)              _TOGGLE(IO)
 
 #define OUT_WRITE(IO,V)         do{ _SET_OUTPUT(IO); WRITE(IO,V); }while(0)
 
@@ -44,11 +74,9 @@
 #define SET_INPUT_PULLDOWN(IO)  _SET_MODE(IO, INPUT_PULLDOWN)                     /*!< Input with Pull-down activation       */
 #define SET_OUTPUT(IO)          OUT_WRITE(IO, LOW)
 
-#define TOGGLE(IO)              OUT_WRITE(IO, !READ(IO))
-
 #define GET_INPUT(IO)
 #define GET_OUTPUT(IO)
 #define GET_TIMER(IO)
 
-#define PWM_PIN(p) true
+#define PWM_PIN(p) digitalPinHasPWM(p)
 #define USEABLE_HARDWARE_PWM(p) PWM_PIN(p)

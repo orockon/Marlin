@@ -33,7 +33,7 @@
   #include "../../../module/tool_change.h"
 #endif
 
-#if ENABLED(ULTIPANEL)
+#if HAS_LCD_MENU
   #include "../../../lcd/ultralcd.h"
 #endif
 
@@ -70,7 +70,7 @@ void GcodeSuite::M600() {
   #endif
 
   // Show initial "wait for start" message
-  #if ENABLED(ULTIPANEL)
+  #if HAS_LCD_MENU
     lcd_advanced_pause_show_message(ADVANCED_PAUSE_MESSAGE_INIT, ADVANCED_PAUSE_MODE_PAUSE_PRINT, target_extruder);
   #endif
 
@@ -111,14 +111,14 @@ void GcodeSuite::M600() {
 
   // Unload filament
   const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
-                                                     : filament_change_unload_length[active_extruder]);
+                                                     : fc_settings[active_extruder].unload_length);
 
   // Slow load filament
   constexpr float slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
 
   // Fast load filament
   const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
-                                                       : filament_change_load_length[active_extruder]);
+                                                       : fc_settings[active_extruder].load_length);
 
   const int beep_count = parser.intval('B',
     #ifdef FILAMENT_CHANGE_ALERT_BEEPS
