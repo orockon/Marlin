@@ -200,7 +200,7 @@ namespace UI {
           max = current_position[axis] + 1000;
 
     // Limit to software endstops, if enabled
-    #if ENABLED(MIN_SOFTWARE_ENDSTOPS) || ENABLED(MAX_SOFTWARE_ENDSTOPS)
+    #if HAS_SOFTWARE_ENDSTOPS
       if (soft_endstops_enabled) switch (axis) {
         case X_AXIS:
           #if ENABLED(MIN_SOFTWARE_ENDSTOP_X)
@@ -227,7 +227,7 @@ namespace UI {
           #endif
         default: break;
       }
-    #endif // MIN_SOFTWARE_ENDSTOPS || MAX_SOFTWARE_ENDSTOPS
+    #endif // HAS_SOFTWARE_ENDSTOPS
 
     // Delta limits XY based on the current offset from center
     // This assumes the center is 0,0
@@ -570,7 +570,7 @@ namespace UI {
   }
 
   bool isPrintingFromMediaPaused() {
-    return IFSD(isPrintingFromMedia() && !card.sdprinting, false);
+    return IFSD(isPrintingFromMedia() && !IS_SD_PRINTING(), false);
   }
 
   bool isPrintingFromMedia() {
@@ -728,7 +728,7 @@ void lcd_reset_status() {
   if (print_job_timer.isPaused())
     msg = paused;
   #if ENABLED(SDSUPPORT)
-    else if (card.sdprinting)
+    else if (IS_SD_PRINTING())
       return lcd_setstatus(card.longest_filename(), true);
   #endif
   else if (print_job_timer.isRunning())
