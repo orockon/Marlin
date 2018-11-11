@@ -121,9 +121,9 @@
 //#define ENET_TXD0          P1_00
 #define ENET_TXD1          P1_01
 
-#define X_CS_PIN P0_00
-#define Y_CS_PIN P0_01
-#define Z_CS_PIN P1_10
+#define X_CS_PIN P0_01
+#define Y_CS_PIN P1_10
+//#define Z_CS_PIN P0_00
 
 /**
  *  PWMs
