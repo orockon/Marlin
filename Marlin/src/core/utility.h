@@ -19,9 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef __UTILITY_H__
-#define __UTILITY_H__
+#pragma once
 
 #include "../inc/MarlinConfigPre.h"
 
@@ -29,7 +27,7 @@ constexpr char axis_codes[XYZE] = { 'X', 'Y', 'Z', 'E' };
 
 void safe_delay(millis_t ms);
 
-#if ENABLED(EEPROM_SETTINGS)
+#if ENABLED(EEPROM_SETTINGS) || ENABLED(SD_FIRMWARE_UPDATE)
   void crc16(uint16_t *crc, const void * const data, uint16_t cnt);
 #endif
 
@@ -102,5 +100,3 @@ void safe_delay(millis_t ms);
 #if ENABLED(DEBUG_LEVELING_FEATURE)
   void log_machine_info();
 #endif
-
-#endif // __UTILITY_H__
