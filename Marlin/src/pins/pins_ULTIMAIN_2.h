@@ -107,6 +107,7 @@
 #define SAFETY_TRIGGERED_PIN     28   // PIN to detect the safety circuit has triggered
 #define MAIN_VOLTAGE_MEASURE_PIN 14   // ANALOG PIN to measure the main voltage, with a 100k - 4k7 resitor divider.
 #define SERVO0_PIN         29
+#define FIL_RUNOUT_PIN    14
 
 //
 // LCD / Controller
@@ -115,10 +116,10 @@
 
 #define LCD_PINS_RS        20
 #define LCD_PINS_ENABLE    15
-#define LCD_PINS_D4        14
+//#define LCD_PINS_D4        14
 #define LCD_PINS_D5        21
 #define LCD_PINS_D6         5
-#define LCD_PINS_D7         6
+//#define LCD_PINS_D7         6
 
 // Buttons are directly attached
 #define BTN_EN1            40
