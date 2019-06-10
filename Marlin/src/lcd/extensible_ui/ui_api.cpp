@@ -148,9 +148,7 @@ namespace ExtUI {
     }
   #endif // __SAM3X8E__
 
-  void delay_us(unsigned long us) {
-    DELAY_US(us);
-  }
+  void delay_us(unsigned long us) { DELAY_US(us); }
 
   void delay_ms(unsigned long ms) {
     if (flags.printer_killed)
@@ -164,14 +162,62 @@ namespace ExtUI {
       thermalManager.manage_heater();
   }
 
-  float getActualTemp_celsius(const heater_t heater) {
-    return heater == BED ?
-      #if HAS_HEATED_BED
-        thermalManager.degBed()
-      #else
-        0
+  void enableHeater(const extruder_t extruder) {
+    #if HEATER_IDLE_HANDLER
+      thermalManager.reset_heater_idle_timer(extruder - E0);
+    #endif
+  }
+
+  void enableHeater(const heater_t heater) {
+    #if HEATER_IDLE_HANDLER
+      switch (heater) {
+        #if HAS_HEATED_BED
+          case BED:
+            thermalManager.reset_bed_idle_timer();
+            return;
+        #endif
+        #if HAS_HEATED_CHAMBER
+          case CHAMBER: return; // Chamber has no idle timer
+        #endif
+        default: thermalManager.reset_heater_idle_timer(heater - H0);
+      }
+    #endif
+  }
+
+  bool isHeaterIdle(const extruder_t extruder) {
+    return false
+      #if HEATER_IDLE_HANDLER
+        || thermalManager.hotend_idle[extruder - E0].timed_out
       #endif
-      : thermalManager.degHotend(heater - H0);
+    ;
+  }
+
+  bool isHeaterIdle(const heater_t heater) {
+    #if HEATER_IDLE_HANDLER
+      switch (heater) {
+        #if HAS_HEATED_BED
+          case BED: return thermalManager.bed_idle.timed_out;
+        #endif
+        #if HAS_HEATED_CHAMBER
+          case CHAMBER: return false; // Chamber has no idle timer
+        #endif
+        default: return thermalManager.hotend_idle[heater - H0].timed_out;
+      }
+    #else
+      return false;
+    #endif
+  }
+
+  float getActualTemp_celsius(const heater_t heater) {
+    switch (heater) {
+      #if HAS_HEATED_BED
+        case BED: return thermalManager.degBed();
+      #endif
+      #if HAS_HEATED_CHAMBER
+        case CHAMBER: return thermalManager.degChamber();
+      #endif
+      default: return thermalManager.degHotend(heater - H0);
+    }
   }
 
   float getActualTemp_celsius(const extruder_t extruder) {
@@ -179,13 +225,15 @@ namespace ExtUI {
   }
 
   float getTargetTemp_celsius(const heater_t heater) {
-    return heater == BED ?
+    switch (heater) {
       #if HAS_HEATED_BED
-        thermalManager.degTargetBed()
-      #else
-        0
+        case BED: return thermalManager.degTargetBed();
       #endif
-      : thermalManager.degTargetHotend(heater - H0);
+      #if HAS_HEATED_CHAMBER
+        case CHAMBER: return thermalManager.degTargetChamber();
+      #endif
+      default: return thermalManager.degTargetHotend(heater - H0);
+    }
   }
 
   float getTargetTemp_celsius(const extruder_t extruder) {
@@ -252,8 +300,7 @@ namespace ExtUI {
       }
     #endif
 
-    if (!flags.manual_motion)
-      set_destination_from_current();
+    if (!flags.manual_motion) set_destination_from_current();
     destination[axis] = clamp(position, min, max);
     flags.manual_motion = true;
   }
@@ -261,8 +308,7 @@ namespace ExtUI {
   void setAxisPosition_mm(const float position, const extruder_t extruder) {
     setActiveTool(extruder, true);
 
-    if (!flags.manual_motion)
-      set_destination_from_current();
+    if (!flags.manual_motion) set_destination_from_current();
     destination[E_AXIS] = position;
     flags.manual_motion = true;
   }
@@ -303,8 +349,7 @@ namespace ExtUI {
     #if EXTRUDERS > 1
       const uint8_t e = extruder - E0;
       #if DO_SWITCH_EXTRUDER || EITHER(SWITCHING_NOZZLE, PARKING_EXTRUDER)
-        if (e != active_extruder)
-          tool_change(e, 0, no_move);
+        if (e != active_extruder) tool_change(e, 0, no_move);
       #endif
       active_extruder = e;
     #endif
@@ -341,13 +386,8 @@ namespace ExtUI {
   }
 
   #if HAS_SOFTWARE_ENDSTOPS
-    bool getSoftEndstopState() {
-      return soft_endstops_enabled;
-    }
-
-    void setSoftEndstopState(const bool value) {
-      soft_endstops_enabled = value;
-    }
+    bool getSoftEndstopState() { return soft_endstops_enabled; }
+    void setSoftEndstopState(const bool value) { soft_endstops_enabled = value; }
   #endif
 
   #if HAS_TRINAMIC
@@ -513,13 +553,8 @@ namespace ExtUI {
     void setFilamentRunoutEnabled(const bool value) { runout.enabled = value; }
 
     #ifdef FILAMENT_RUNOUT_DISTANCE_MM
-      float getFilamentRunoutDistance_mm() {
-        return runout.runout_distance();
-      }
-
-      void setFilamentRunoutDistance_mm(const float value) {
-        runout.set_runout_distance(clamp(value, 0, 999));
-      }
+      float getFilamentRunoutDistance_mm()                 { return runout.runout_distance(); }
+      void setFilamentRunoutDistance_mm(const float value) { runout.set_runout_distance(clamp(value, 0, 999)); }
     #endif
   #endif
 
@@ -707,8 +742,8 @@ namespace ExtUI {
   #if HAS_LEVELING
     bool getLevelingActive() { return planner.leveling_active; }
     void setLevelingActive(const bool state) { set_bed_leveling_enabled(state); }
+    bool getMeshValid() { return leveling_is_valid(); }
     #if HAS_MESH
-      bool getMeshValid() { return leveling_is_valid(); }
       bed_mesh_t getMeshArray() { return Z_VALUES_ARR; }
       float getMeshPoint(const uint8_t xpos, const uint8_t ypos) { return Z_VALUES(xpos,ypos); }
       void setMeshPoint(const uint8_t xpos, const uint8_t ypos, const float zoff) {
@@ -761,6 +796,7 @@ namespace ExtUI {
   void setTargetTemp_celsius(float value, const heater_t heater) {
     constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP);
     const int16_t e = heater - H0;
+    enableHeater(heater);
     #if HAS_HEATED_BED
       if (heater == BED)
         thermalManager.setTargetBed(clamp(value, 0, BED_MAXTEMP - 10));
@@ -772,6 +808,7 @@ namespace ExtUI {
   void setTargetTemp_celsius(float value, const extruder_t extruder) {
     constexpr int16_t heater_maxtemp[HOTENDS] = ARRAY_BY_HOTENDS(HEATER_0_MAXTEMP, HEATER_1_MAXTEMP, HEATER_2_MAXTEMP, HEATER_3_MAXTEMP, HEATER_4_MAXTEMP);
     const int16_t e = extruder - E0;
+    enableHeater(extruder);
     thermalManager.setTargetHotend(clamp(value, 0, heater_maxtemp[e] - 15), e);
   }
 
@@ -811,35 +848,15 @@ namespace ExtUI {
   }
 
   void pausePrint() {
-    #if ENABLED(SDSUPPORT)
-      card.pauseSDPrint();
-      print_job_timer.pause();
-      #if ENABLED(PARK_HEAD_ON_PAUSE)
-        enqueue_and_echo_commands_P(PSTR("M125"));
-      #endif
-      ui.set_status_P(PSTR(MSG_PRINT_PAUSED));
-    #endif
+    ui.pause_print();
   }
 
   void resumePrint() {
-    #if ENABLED(SDSUPPORT)
-      ui.set_status_P(PSTR(MSG_FILAMENT_CHANGE_RESUME_1));
-      #if ENABLED(PARK_HEAD_ON_PAUSE)
-        wait_for_heatup = wait_for_user = false;
-        enqueue_and_echo_commands_P(PSTR("M24"));
-      #else
-        card.startFileprint();
-        print_job_timer.start();
-      #endif
-    #endif
+    ui.resume_print();
   }
 
   void stopPrint() {
-    #if ENABLED(SDSUPPORT)
-      wait_for_heatup = wait_for_user = false;
-      card.flag.abort_sd_printing = true;
-      ui.set_status_P(PSTR(MSG_PRINT_ABORTED));
-    #endif
+    ui.abort_print();
   }
 
   FileList::FileList() { refresh(); }
