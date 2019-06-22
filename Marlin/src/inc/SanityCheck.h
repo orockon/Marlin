@@ -358,6 +358,8 @@
   #error "DUAL_NOZZLE_DUPLICATION_MODE is now MULTI_NOZZLE_DUPLICATION. Please update your configuration."
 #elif defined(MENU_ITEM_CASE_LIGHT)
   #error "MENU_ITEM_CASE_LIGHT is now CASE_LIGHT_MENU. Please update your configuration."
+#elif defined(ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED)
+  #error "ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED is now SD_ABORT_ON_ENDSTOP_HIT. Please update your Configuration_adv.h."
 #endif
 
 #define BOARD_MKS_13     -47
@@ -983,11 +985,12 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   + ENABLED(FIX_MOUNTED_PROBE) \
   + (HAS_Z_SERVO_PROBE && DISABLED(BLTOUCH)) \
   + ENABLED(BLTOUCH) \
+  + ENABLED(TOUCH_MI_PROBE) \
   + ENABLED(SOLENOID_PROBE) \
   + ENABLED(Z_PROBE_ALLEN_KEY) \
   + ENABLED(Z_PROBE_SLED) \
   + ENABLED(RACK_AND_PINION_PROBE)
-  #error "Please enable only one probe option: PROBE_MANUALLY, FIX_MOUNTED_PROBE, BLTOUCH, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
+  #error "Please enable only one probe option: PROBE_MANUALLY, FIX_MOUNTED_PROBE, BLTOUCH, TOUCH_MI_PROBE, SOLENOID_PROBE, Z_PROBE_ALLEN_KEY, Z_PROBE_SLED, or Z Servo."
 #endif
 
 #if HAS_BED_PROBE
@@ -1042,6 +1045,25 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 
   #if ENABLED(RACK_AND_PINION_PROBE) && !(defined(Z_PROBE_DEPLOY_X) && defined(Z_PROBE_RETRACT_X))
     #error "RACK_AND_PINION_PROBE requires Z_PROBE_DEPLOY_X and Z_PROBE_RETRACT_X."
+  #endif
+
+  /**
+   * Touch-MI probe requirements
+   */
+  #if ENABLED(TOUCH_MI_PROBE)
+    #if DISABLED(Z_SAFE_HOMING)
+      #error "TOUCH_MI_PROBE requires Z_SAFE_HOMING."
+    #elif !defined(TOUCH_MI_RETRACT_Z)
+      #error "TOUCH_MI_PROBE requires TOUCH_MI_RETRACT_Z."
+    #elif defined(Z_AFTER_PROBING)
+      #error "TOUCH_MI_PROBE requires Z_AFTER_PROBING to be disabled."
+    #elif Z_HOMING_HEIGHT < 10
+      #error "TOUCH_MI_PROBE requires Z_HOMING_HEIGHT >= 10."
+    #elif Z_MIN_PROBE_ENDSTOP_INVERTING
+      #error "TOUCH_MI_PROBE requires Z_MIN_PROBE_ENDSTOP_INVERTING to be set to false."
+    #elif DISABLED(BABYSTEP_ZPROBE_OFFSET)
+      #error "TOUCH_MI_PROBE requires BABYSTEPPING with BABYSTEP_ZPROBE_OFFSET."
+    #endif
   #endif
 
   /**
@@ -1499,6 +1521,13 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 /**
+ * LED Backlight Timeout
+ */
+#if defined(LED_BACKLIGHT_TIMEOUT) && !(EITHER(FYSETC_MINI_12864_2_0, FYSETC_MINI_12864_2_1) && POWER_SUPPLY > 0)
+  #error "LED_BACKLIGHT_TIMEOUT requires a Fysetc Mini Panel and a Power Switch."
+#endif
+
+/**
  * Basic multi hotend duplication mode
  */
 #if ENABLED(MULTI_NOZZLE_DUPLICATION)
@@ -1812,6 +1841,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   + ENABLED(G3D_PANEL) \
   + (ENABLED(MINIPANEL) && DISABLED(MKS_MINI_12864)) \
   + ENABLED(MKS_MINI_12864) \
+  + ENABLED(FYSETC_MINI_12864_X_X) \
   + ENABLED(FYSETC_MINI_12864_1_2) \
   + ENABLED(FYSETC_MINI_12864_2_0) \
   + ENABLED(FYSETC_MINI_12864_2_1) \
