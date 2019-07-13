@@ -83,7 +83,7 @@
 void restore_stepper_drivers();  // Called by PSU_ON
 void reset_stepper_drivers();    // Called by settings.load / settings.reset
 
-#define AXIS_HAS_SQUARE_WAVE(A) (AXIS_IS_TMC(A) && ENABLED(SQUARE_WAVE_STEPPING))
+#define AXIS_HAS_SQUARE_WAVE(A) (ENABLED(SQUARE_WAVE_STEPPING))
 
 // X Stepper
 #if AXIS_DRIVER_TYPE_X(L6470)
