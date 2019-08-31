@@ -882,7 +882,6 @@
   #endif
 
 #endif // HAS_LCD_MENU
->>>>>>> origin/bugfix-2.0.x
 
 // Scroll a longer status message into view
 #define STATUS_MESSAGE_SCROLLING
