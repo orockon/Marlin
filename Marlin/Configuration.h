@@ -137,7 +137,7 @@
 #endif
 
 // Name displayed in the LCD "Ready" message and Info menu
-//#define CUSTOM_MACHINE_NAME "MMU"
+#define CUSTOM_MACHINE_NAME "MMU"
 
 // Printer's unique ID, used by some programs to differentiate between machines.
 // Choose your own or use a service like http://www.uuidgenerator.net/version4
@@ -487,13 +487,13 @@
 //    #define  DEFAULT_Kd 50.98
 
 // Duplicator 6 Microswiss hotend
-//#define DEFAULT_Kp 19.89
-//#define DEFAULT_Ki 0.96
-//#define DEFAULT_Kd 102.66
+#define DEFAULT_Kp 19.89
+#define DEFAULT_Ki 0.96
+#define DEFAULT_Kd 102.66
 
-#define DEFAULT_Kp 44.45
-#define DEFAULT_Ki 5.27
-#define DEFAULT_Kd 93.76
+  //#define DEFAULT_Kp 44.45
+  //#define DEFAULT_Ki 5.27
+  //#define DEFAULT_Kd 93.76
 
   // MakerGear
   //#define DEFAULT_Kp 7.0
@@ -876,7 +876,7 @@
 /**
  * The BLTouch probe uses a Hall effect sensor and emulates a servo.
  */
-//#define BLTOUCH
+#define BLTOUCH
 
 /**
  * Touch-MI Probe by hotends.fr
@@ -932,9 +932,9 @@
  *     O-- FRONT --+
  *   (0,0)
  */
-//#define X_PROBE_OFFSET_FROM_EXTRUDER -33  // X offset: -left  +right  [of the nozzle]
-//#define Y_PROBE_OFFSET_FROM_EXTRUDER 15  // Y offset: -front +behind [the nozzle]
-//#define Z_PROBE_OFFSET_FROM_EXTRUDER -2.9   // Z offset: -below +above  [the nozzle]
+#define X_PROBE_OFFSET_FROM_EXTRUDER -33  // X offset: -left  +right  [of the nozzle]
+#define Y_PROBE_OFFSET_FROM_EXTRUDER 15  // Y offset: -front +behind [the nozzle]
+#define Z_PROBE_OFFSET_FROM_EXTRUDER -2.9   // Z offset: -below +above  [the nozzle]
 
 // Certain types of probes need to stay away from edges
 #define MIN_PROBE_EDGE 10
@@ -957,7 +957,7 @@
  * A total of 2 does fast/slow probes with a weighted average.
  * A total of 3 or more adds more slow probes, taking the average.
  */
-//#define MULTIPLE_PROBING 2
+#define MULTIPLE_PROBING 4
 //#define EXTRA_PROBING    1
 
 /**
@@ -1347,7 +1347,7 @@
 // - Move the Z probe (or nozzle) to a defined XY point before Z Homing when homing all axes (G28).
 // - Prevent Z homing when the Z probe is outside bed area.
 //
-//#define Z_SAFE_HOMING
+#define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
   #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).

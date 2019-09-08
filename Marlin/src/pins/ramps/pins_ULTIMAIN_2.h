@@ -109,7 +109,7 @@
 #define LED_PIN             8
 #define SAFETY_TRIGGERED_PIN     28   // PIN to detect the safety circuit has triggered
 #define MAIN_VOLTAGE_MEASURE_PIN 14   // ANALOG PIN to measure the main voltage, with a 100k - 4k7 resitor divider.
-//#define SERVO0_PIN         29 // BLTouch
+#define SERVO0_PIN         29 // BLTouch
 #define FIL_RUNOUT_PIN    14
 
 //
