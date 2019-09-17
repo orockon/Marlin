@@ -71,7 +71,7 @@
 // @section info
 
 // Author info of this build printed to the host during boot and M115
-#define STRING_CONFIG_H_AUTHOR "(ETE-Design, Granty v1)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(ETE-Design, Gantry v1)" // Who made the changes.
 
 /**
  * *** VENDORS PLEASE READ ***
@@ -1463,12 +1463,12 @@
  *    P1  Raise the nozzle always to Z-park height.
  *    P2  Raise the nozzle by Z-park amount, limited to Z_MAX_POS.
  */
-//#define NOZZLE_PARK_FEATURE
+#define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
   // Specify a park position as { X, Y, Z_raise }
   #define NOZZLE_PARK_POINT { (X_MIN_POS + 10), (Y_MAX_POS - 10), 20 }
-  #define NOZZLE_PARK_XY_FEEDRATE 100   // (mm/s) X and Y axes feedrate (also used for delta Z axis)
+  #define NOZZLE_PARK_XY_FEEDRATE 60    // (mm/s) X and Y axes feedrate (also used for delta Z axis)
   #define NOZZLE_PARK_Z_FEEDRATE 5      // (mm/s) Z axis feedrate (not used for delta printers)
 #endif
 
@@ -1520,7 +1520,7 @@
   #define NOZZLE_CLEAN_TRIANGLES  3
 
   // Specify positions as { X, Y, Z }
-  #define NOZZLE_CLEAN_START_POINT { 30, 30, (Z_MIN_POS + 1)}
+  #define NOZZLE_CLEAN_START_POINT {  30, 30, (Z_MIN_POS + 1) }
   #define NOZZLE_CLEAN_END_POINT   { 100, 60, (Z_MIN_POS + 1) }
 
   // Circular pattern radius
@@ -2063,6 +2063,9 @@
 //
 //#define TOUCH_BUTTONS
 #if ENABLED(TOUCH_BUTTONS)
+  #define BUTTON_DELAY_EDIT  50 // (ms) Button repeat delay for edit screens
+  #define BUTTON_DELAY_MENU 250 // (ms) Button repeat delay for menus
+
   #define XPT2046_X_CALIBRATION   12316
   #define XPT2046_Y_CALIBRATION  -8981
   #define XPT2046_X_OFFSET       -43
@@ -2073,11 +2076,8 @@
 // RepRapWorld REPRAPWORLD_KEYPAD v1.1
 // http://reprapworld.com/?products_details&products_id=202&cPath=1591_1626
 //
-// REPRAPWORLD_KEYPAD_MOVE_STEP sets how much should the robot move when a key
-// is pressed, a value of 10.0 means 10mm per click.
-//
 //#define REPRAPWORLD_KEYPAD
-//#define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0
+//#define REPRAPWORLD_KEYPAD_MOVE_STEP 10.0 // (mm) Distance to move per key-press
 
 //=============================================================================
 //=============================== Extra Features ==============================
@@ -2205,7 +2205,7 @@
  */
 //#define NUM_SERVOS 3 // Servo index starts with 0 for M280 command
 
-// Delay (in milliseconds) before the next move will start, to give the servo time to reach its target angle.
+// (ms) Delay  before the next move will start, to give the servo time to reach its target angle.
 // 300ms is a good value but you can try less delay.
 // If the servo can't reach the requested position, increase it.
 #define SERVO_DELAY { 300 }
